@@ -35,10 +35,12 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
         }
     }
 }
-
+// TODO: https://docs.ton.org/develop/dapps/cookbook#how-to-find-transaction-for-a-certain-ton-connect-result
 async function fetchTxWithRetry(hash: string, retries = 3, minDelay = 3000, maxDelay = 7000) {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
+            hash = encodeURIComponent(hash);
+            console.log('fetchTxWithRetry hash ', hash);
             const response = await fetch(`https://toncenter.com/api/v3/transactionsByMessage?direction=in&msg_hash=${hash}&limit=128&offset=0`);
 
             if (response.ok) {
