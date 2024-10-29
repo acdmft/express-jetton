@@ -18,6 +18,7 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
         // hash string must be escaped one time, don't escape in the for cycle
         // first attempt is too early usually,tx needs time to be confirmed and recorded in blockchain 
         const data = await fetchTxWithRetry(encodeURIComponent(msgHash));
+        // console.log('verifyTx data ', data);
         if (data) {
             // console.log('data2 ', data,  data.transactions[0].out_msgs[0].value,data.transactions[0].out_msgs[0].source);
             req.body.txData = {
