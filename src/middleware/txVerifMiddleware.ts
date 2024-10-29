@@ -15,12 +15,14 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
     const { msgHash } = req.body;
     console.log('msgHash ', msgHash);
     try {
-        const data = await fetchTxWithRetry(msgHash);
+        // hash string must be escaped one time, don't escape in the for cycle
+        // first attempt is too early usually,tx needs time to be confirmed and recorded in blockchain 
+        const data = await fetchTxWithRetry(encodeURIComponent(msgHash));
         if (data) {
-            console.log('data2 ', data,  data.transactions[0].out_msgs[0].value,data.transactions[0].out_msgs[0].source);
+            // console.log('data2 ', data,  data.transactions[0].out_msgs[0].value,data.transactions[0].out_msgs[0].source);
             req.body.txData = {
-                msg_value: data.transactions[0].out_msgs[0].value,
-                sender: data.transactions[0].out_msgs[0].source
+                msg_value: data.value,
+                sender: data.sender
             }
             next();
         } else {
@@ -39,16 +41,17 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
 async function fetchTxWithRetry(hash: string, retries = 3, minDelay = 3000, maxDelay = 7000) {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-            hash = encodeURIComponent(hash);
             console.log('fetchTxWithRetry hash ', hash);
             const response = await fetch(`https://toncenter.com/api/v3/transactionsByMessage?direction=in&msg_hash=${hash}&limit=128&offset=0`);
 
             if (response.ok) {
-                const data = (await response.json()) as ApiResponse;
+                const resp = (await response.json()) as ApiResponse;
                 // if (data.transactions.length === 0) {
                 //     throw new Error('Transaction not found');
                 // }
+                const data = {value: resp.transactions[0].out_msgs[0].value, sender: resp.transactions[0].out_msgs[0].source}
                 console.log('data ', data);
+                
                 return data;
                     // msg_value: data.transactions[0].out_msgs[0].value,
                     // sender: data.transactions[0].out_msgs[0].source
