@@ -11,10 +11,9 @@ function calculateJettonAmount(value: string): bigint {
 }
 
 async function jettonMinter() {
-  console.log("jettonMinter ");
   while (true) {
     const unprocessedRows = await getUnprocessedRows();
-    // console.log('unprocessedRows ', unprocessedRows);
+    console.log('unprocessedRows ', unprocessedRows);
     if (unprocessedRows.length === 0) {
       console.log("No unprocessed rows found, waiting...");
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -37,8 +36,10 @@ async function jettonMinter() {
       try {
         let senderAddress = Address.parse(row.sender).toString({bounceable: false});
         console.log('senderAddress ', senderAddress);
+        const sender = Address.parse(senderAddress);
         let senderNonBuonceAddress = Address.parseFriendly(senderAddress);
         console.log('sender address ', senderNonBuonceAddress.address);
+        // await sendMintMsg(senderNonBuonceAddress.address, jAmount);
         await sendMintMsg(senderNonBuonceAddress.address, jAmount);
       } catch (error) {
         console.log("Error during sending mint message: ", error);
