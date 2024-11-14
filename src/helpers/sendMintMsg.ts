@@ -1,5 +1,5 @@
 import { TonClient, WalletContractV4, internal } from "@ton/ton";
-import { mnemonicNew, mnemonicToPrivateKey } from "@ton/crypto";
+import { mnemonicToPrivateKey } from "@ton/crypto";
 import { beginCell, Address, toNano } from "@ton/ton";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
@@ -61,12 +61,14 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
     .endCell();
 
   const msgBoc = externalMessage.toBoc().toString("base64");
-  console.log('transfer boc hex', externalMessage.toBoc().toString('hex'));
-  console.log("transfer boc ", msgBoc);
-  console.log('mint msg hex', mintMsg.toBoc().toString('hex'));
-  console.log('mint msg base64', mintMsg.toBoc().toString('base64'));
+  // console.log('transfer boc hex', externalMessage.toBoc().toString('hex'));
+  // console.log("transfer boc ", msgBoc);
+  // console.log('mint msg hex', mintMsg.toBoc().toString('hex'));
+  // console.log('mint msg base64', mintMsg.toBoc().toString('base64'));
   await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 seconds before calling next function
-  await sendBocWithRetry(msgBoc, toncenterApiBaseUrl, 3, 3, 2000);
+  const result = await sendBocWithRetry(msgBoc, toncenterApiBaseUrl, 3, 3, 2000); 
+  return result;
+    
 }
 
 async function sendBocWithRetry(
@@ -79,8 +81,7 @@ async function sendBocWithRetry(
   // const access_token = process.env.GETBLOCK_KEY!;
   const toncenterApiBaseUrl = "https://toncenter.com/api/v2";
   try {
-    console.log('fetch function call')
-    const result = await fetch(`${toncenterApiBaseUrl}/sendBoc`, {
+    let result = await fetch(`${toncenterApiBaseUrl}/sendBocReturnHash`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,8 +90,8 @@ async function sendBocWithRetry(
         boc: boc,
       }),
     });
-
-    console.log("result ", await result.json());
+    result = await result.json();
+    console.log("sendBocWithRetries result ", result);
     if (!result.ok) {
       if (retries <= 0) {
         console.log('error during sending mint message');
@@ -105,6 +106,8 @@ async function sendBocWithRetry(
         maxRetries,
         delayBetweenRetries
       );
+    } else {
+      return result;
     }
   } catch (error) {
     console.error("Error sending BOC:", error);
@@ -116,10 +119,11 @@ async function sendBocWithRetry(
         apiUrl,
         retries - 1,
         maxRetries,
-        delayBetweenRetries * 1.5
+        delayBetweenRetries * 2 // increase delay between fetches
       );
     } else {
       console.error("Failed to send BOC after multiple attempts");
+      return;
     }
   }
 }
