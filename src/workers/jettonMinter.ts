@@ -35,10 +35,10 @@ async function jettonMinter() {
 
       try {
         let senderAddress = Address.parse(row.sender).toString({bounceable: false});
-        console.log('senderAddress ', senderAddress);
+        // console.log('senderAddress ', senderAddress);
         const sender = Address.parse(senderAddress);
         let senderNonBuonceAddress = Address.parseFriendly(senderAddress);
-        console.log('sender address ', senderNonBuonceAddress.address);
+        // console.log('sender address ', senderNonBuonceAddress.address);
         // await sendMintMsg(senderNonBuonceAddress.address, jAmount);
         mintResult = await sendMintMsg(senderNonBuonceAddress.address, jAmount);
         console.log('jettonMinter sendMintMsg result ', mintResult);

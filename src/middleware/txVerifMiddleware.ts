@@ -7,17 +7,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 interface ApiResponse {
-    transactions: Transaction[]
+    transactions: Transaction[],
+    error?: string
 }
 
 export async function verifyTx(req: Request, res: Response, next: NextFunction) {
 
-    const { msgHash } = req.body;
-    console.log('msgHash ', msgHash);
+    const { msgHash, txHash, comment } = req.body;
+    console.log('msgHash , txHash, comment ', msgHash, txHash, comment);
     try {
         // hash string must be escaped one time, don't escape in the for cycle
         // first attempt is too early usually,tx needs time to be confirmed and recorded in blockchain 
-        const data = await fetchTxWithRetry(encodeURIComponent(msgHash));
+        const data = await fetchTxWithRetry(encodeURIComponent(msgHash), txHash);
         // console.log('verifyTx data ', data);
         if (data) {
             // console.log('data2 ', data,  data.transactions[0].out_msgs[0].value,data.transactions[0].out_msgs[0].source);
@@ -27,7 +28,6 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
             }
             next();
         } else {
-            console.log('foo')
             res.status(500).json({ message: 'Server error!'});
         }
     } catch (error) {
@@ -39,11 +39,17 @@ export async function verifyTx(req: Request, res: Response, next: NextFunction) 
     }
 }
 // TODO: https://docs.ton.org/develop/dapps/cookbook#how-to-find-transaction-for-a-certain-ton-connect-result
-async function fetchTxWithRetry(hash: string, retries = 3, minDelay = 3000, maxDelay = 7000) {
+async function fetchTxWithRetry(msgHash: string, txHash: string, retries = 5, minDelay = 3000, maxDelay = 7000) {
+    let delay = 3000;
     for (let attempt = 1; attempt <= retries; attempt++) {
+        let response: fetch.Response;
         try {
-            console.log('fetchTxWithRetry hash ', hash);
-            const response = await fetch(`https://toncenter.com/api/v3/transactionsByMessage?direction=in&msg_hash=${hash}&limit=128&offset=0`);
+            // console.log('fetchTxWithRetry hash ', hash);
+            if (attempt % 2 === 0) {
+                response = await fetch(`https://toncenter.com/api/v3/transactions?direction=in&hash=${txHash}&limit=128&offset=0`);
+            } else {
+                response = await fetch(`https://toncenter.com/api/v3/transactionsByMessage?direction=in&msg_hash=${msgHash}&limit=128&offset=0`);
+            }
 
             if (response.ok) {
                 const resp = (await response.json()) as ApiResponse;
@@ -51,7 +57,7 @@ async function fetchTxWithRetry(hash: string, retries = 3, minDelay = 3000, maxD
                 //     throw new Error('Transaction not found');
                 // }
                 const data = {value: resp.transactions[0].out_msgs[0].value, sender: resp.transactions[0].out_msgs[0].source}
-                console.log('data ', data);
+                console.log('success: response data ', data);
                 
                 return data;
                     // msg_value: data.transactions[0].out_msgs[0].value,
@@ -66,9 +72,10 @@ async function fetchTxWithRetry(hash: string, retries = 3, minDelay = 3000, maxD
         } catch (error) {
             if (attempt < retries) {
                 const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-                console.log(`Attempt ${attempt} failed. Retrying in ${randomDelay / 1000} seconds...`);
+                console.log(`Attempt ${attempt} failed. Retrying in ${delay * 2 / 1000} seconds...`);
                 console.log(error)
-                await new Promise(resolve => setTimeout(resolve, randomDelay));
+                delay *= 2;
+                await new Promise(resolve => setTimeout(resolve, delay));
             } else {
                 console.log('All attempts failed.');
                 throw error; // Re-throw the error after the last attempt

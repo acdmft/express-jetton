@@ -25,7 +25,21 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
   const j_minter = Address.parse(process.env.J_MASTER_ADDRESS!);
   const toncenterApiBaseUrl = "https://toncenter.com/api/v2";
 
-  let seqno = await contract.getSeqno();
+  let seqno: number = 0;
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      seqno = await contract.getSeqno();
+      break;
+    } catch(e) {
+      await new Promise((resolve) => setTimeout(resolve, 3000)); 
+      console.error('get seqno error: ', e);
+      if (retries === 0) {
+        throw new Error('Error: Couldn\'t get seqno');
+      }
+    }
+    retries += 1;
+  }
 
   const mintMsg = beginCell()
     .storeUint(21, 32)
@@ -36,6 +50,7 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
     .storeCoins(toNano("0.06")) // total_ton_amount
     .endCell();
 
+    console.log('seqno ', seqno);
   let transfer = contract.createTransfer({
     seqno,
     secretKey: keyPair.secretKey,
@@ -94,7 +109,7 @@ async function sendBocWithRetry(
     console.log("sendBocWithRetries result ", result);
     if (!result.ok) {
       if (retries <= 0) {
-        console.log('error during sending mint message');
+        console.error('error during sending mint message');
         return;
       }
       console.log('sendBocWithRetry retries', retries);
