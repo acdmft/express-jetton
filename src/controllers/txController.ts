@@ -2,23 +2,21 @@ import { Request, Response } from "express";
 import pool from "../config/database";
 
 export const processTx = async (req: Request, res: Response) => {
-  const { msgHash, txHash, txData } = req.body;
-  const { comment } = req.body; //as { hash: string };
-  console.log("processTx tx msgHash, txHash, comment ", msgHash, txHash, comment);
+  const { msgHash, txHash, lastTxHash, comment } = req.body;
+  console.log("processTx tx msgHash, txHash, lastTxHash, comment ", msgHash, txHash, lastTxHash, comment);
   try {
     const result = await pool.query(
-      "INSERT INTO transactions (msg_hash, tx_hash, comment, sender, amount) \
-             VALUES ($1, $2, $3, $4, $5) \
+      "INSERT INTO transactions (msg_hash, tx_hash, last_tx_hash, comment) \
+             VALUES ($1, $2, $3, $4) \
             ON CONFLICT (msg_hash, tx_hash) DO NOTHING \
-            RETURNING msg_hash",
-      [msgHash, txHash, comment, txData.sender, txData.msg_value]
+            RETURNING created_at",
+      [msgHash, txHash, lastTxHash, comment]
     );
     console.log('processTx result ', result);
     if (result.rowCount === 1) {
       return res.json({
         message: "Comment recorded successfully",
-        sender: txData.sender,
-        msg_value: txData.msg_value,
+        dateTime: result.rows[0].created_at
       });
     } else {
       return res.status(404).json({

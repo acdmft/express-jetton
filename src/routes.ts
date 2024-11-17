@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { processTx, echo } from './controllers/txController';
-import { verifyTx } from './middleware/txVerifMiddleware';
+// import { verifyTx } from './middleware/txVerifMiddleware';
 
 const router = Router();
-router.post('/transaction', verifyTx, processTx);
+router.post('/transaction', processTx);
 router.get('/echo', echo);
 
 export default router;

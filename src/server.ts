@@ -4,6 +4,7 @@ import cors from 'cors';
 import routes from './routes';
 import dotenv from 'dotenv';
 import jettonMinter from './workers/jettonMinter'
+import txVerifier from './workers/txVerifier';
 dotenv.config();
 
 const app = express();
@@ -22,6 +23,6 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-
-    jettonMinter().catch((e) => console.error("Worker encountered error: ", e));
+    txVerifier().catch((e) => console.error("txVerifier worker encountered error: ", e));
+    jettonMinter().catch((e) => console.error("jettonMinter Worker encountered error: ", e));
 })

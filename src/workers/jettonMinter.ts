@@ -1,5 +1,5 @@
 import { Address, toNano } from "@ton/ton";
-import { getUnprocessedRows, setProcToTrue } from "../helpers/queryDb";
+import { getRowsForMinter, setMintResultHash } from "../helpers/queryDb";
 import dotenv from "dotenv";
 import sendMintMsg from "../helpers/sendMintMsg";
 dotenv.config();
@@ -11,7 +11,7 @@ function calculateJettonAmount(value: string): bigint {
 
 async function jettonMinter() {
   while (true) {
-    const unprocessedRows = await getUnprocessedRows();
+    const unprocessedRows = await getRowsForMinter();
     // console.log('unprocessedRows ', unprocessedRows);
     if (unprocessedRows.length === 0) {
       console.log("No unprocessed rows found, waiting...");
@@ -29,7 +29,7 @@ async function jettonMinter() {
         // console.log("sender ", row.sender);
       } catch (e) {
         console.log("calculateJettonAmount error ");
-        await setProcToTrue(row, '');
+        await setMintResultHash(row.id, 'error');
         continue;
       }
 
@@ -44,10 +44,10 @@ async function jettonMinter() {
         console.log('jettonMinter sendMintMsg result ', mintResult);
       } catch (error) {
         console.log("Error during sending mint message: ", error);
-        await setProcToTrue(row, '');
+        await setMintResultHash(row.id, 'error');
         continue;
       }
-      await setProcToTrue(row, mintResult.result?.hash);
+      await setMintResultHash(row, mintResult.result?.hash);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
