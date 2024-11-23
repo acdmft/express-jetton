@@ -4,7 +4,6 @@ import cors from 'cors';
 import routes from './routes';
 import dotenv from 'dotenv';
 import jettonMinter from './workers/jettonMinter'
-import txVerifier from './workers/txVerifier';
 import minterMonitor from './workers/minterMonitor';
 dotenv.config();
 
