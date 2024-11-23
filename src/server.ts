@@ -5,6 +5,7 @@ import routes from './routes';
 import dotenv from 'dotenv';
 import jettonMinter from './workers/jettonMinter'
 import txVerifier from './workers/txVerifier';
+import minterMonitor from './workers/minterMonitor';
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,7 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    txVerifier().catch((e) => console.error("txVerifier worker encountered error: ", e));
-    jettonMinter().catch((e) => console.error("jettonMinter Worker encountered error: ", e));
+    minterMonitor().catch((e) => console.error("minterMonitor worker encountered error ", e));
+    // txVerifier().catch((e) => console.error("txVerifier worker encountered error: ", e));
+    // jettonMinter().catch((e) => console.error("jettonMinter Worker encountered error: ", e));
 })
