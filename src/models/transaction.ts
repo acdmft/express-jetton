@@ -171,4 +171,8 @@ export interface Transaction {
       value: "0";
     }
   ];
+  prev_trans_hash: "string";
+  prev_trans_lt: "0";
+  total_fees: "0";
+  trace_id: "string";
 }
