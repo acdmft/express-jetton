@@ -6,7 +6,8 @@ import { Transaction } from "../models/transaction";
 export async function getRowsForMinter() {
   try {
     const result = await pool.query(
-      "SELECT * FROM transactions WHERE amount != '' AND sender != '' AND mint_hash = '' limit 2"
+      "SELECT * FROM transactions WHERE verified = true AND processed = false"
+      // "SELECT * FROM transactions WHERE amount != '' AND sender != '' AND mint_hash = '' limit 2"
     );
     // console.log('result ', result.rows);
     return result.rows;
@@ -24,7 +25,7 @@ export async function setMintResultHash(
   try {
     // const formattedData = formatData(row);
     const result = await pool.query(
-      "UPDATE transactions SET mint_hash = $2 WHERE id = $1",
+      "UPDATE transactions SET mint_hash = $2, processed = true WHERE id = $1",
       [rowId, hash]
     );
     return result;

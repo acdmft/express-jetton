@@ -18,7 +18,7 @@ async function minterMonitor() {
         console.log("minterMonitor startTime ", startTime);
       }
     } else {
-      console.log("no new transactions detected");
+      console.log("Monitor message: no new transactions detected");
       continue;
     }
     continue;

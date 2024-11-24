@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 async function sendMintMsg(reciever: Address, jAmount: bigint) {
-  console.log('sendMintMsg');
+  console.log("sendMintMsg");
   const client = new TonClient({
     endpoint: "https://toncenter.com/api/v2/jsonRPC",
     apiKey: "",
@@ -26,19 +26,24 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
   const toncenterApiBaseUrl = "https://toncenter.com/api/v2";
 
   let seqno: number = 0;
-  let retries = 3;
-  while (retries > 0) {
+  let retries = 0;
+  let delay = 2000;
+  while (true) {
     try {
+      if (retries > 3) {
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
       seqno = await contract.getSeqno();
       break;
-    } catch(e) {
-      await new Promise((resolve) => setTimeout(resolve, 3000)); 
-      console.error('get seqno error: ', e);
-      if (retries === 0) {
-        throw new Error('Error: Couldn\'t get seqno');
-      }
+    } catch (e) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      console.error("get seqno error: ", e);
+      delay = delay * 2;
+      retries += 1;
+      continue;
     }
-    retries += 1;
   }
 
   const mintMsg = beginCell()
@@ -50,7 +55,7 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
     .storeCoins(toNano("0.06")) // total_ton_amount
     .endCell();
 
-    console.log('seqno ', seqno);
+  // console.log('seqno ', seqno);
   let transfer = contract.createTransfer({
     seqno,
     secretKey: keyPair.secretKey,
@@ -81,9 +86,14 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
   // console.log('mint msg hex', mintMsg.toBoc().toString('hex'));
   // console.log('mint msg base64', mintMsg.toBoc().toString('base64'));
   await new Promise((resolve) => setTimeout(resolve, 2000)); // wait 2 seconds before calling next function
-  const result = await sendBocWithRetry(msgBoc, toncenterApiBaseUrl, 3, 3, 2000); 
+  const result = await sendBocWithRetry(
+    msgBoc,
+    toncenterApiBaseUrl,
+    3,
+    3,
+    2000
+  );
   return result;
-    
 }
 
 async function sendBocWithRetry(
@@ -106,13 +116,13 @@ async function sendBocWithRetry(
       }),
     });
     result = await result.json();
-    console.log("sendBocWithRetries result ", result);
+    // console.log("sendBocWithRetries result ", result);
     if (!result.ok) {
       if (retries <= 0) {
-        console.error('error during sending mint message');
+        console.error("Number of retries exceeded.");
         return;
       }
-      console.log('sendBocWithRetry retries', retries);
+      console.log("sendBocWithRetry retries", retries);
       await new Promise((resolve) => setTimeout(resolve, delayBetweenRetries));
       await sendBocWithRetry(
         boc,

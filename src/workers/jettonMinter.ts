@@ -14,7 +14,7 @@ async function jettonMinter() {
     const unprocessedRows = await getRowsForMinter();
     // console.log('unprocessedRows ', unprocessedRows);
     if (unprocessedRows.length === 0) {
-      console.log("No unprocessed rows found, waiting...");
+      console.log("Minter message: No verified rows found, waiting...");
       await new Promise((resolve) => setTimeout(resolve, 5000));
       continue;
     }
@@ -36,9 +36,9 @@ async function jettonMinter() {
       try {
         let senderAddress = Address.parse(row.sender).toString({bounceable: false});
         // console.log('senderAddress ', senderAddress);
-        const sender = Address.parse(senderAddress);
+        // const sender = Address.parse(senderAddress);
         let senderNonBuonceAddress = Address.parseFriendly(senderAddress);
-        // console.log('sender address ', senderNonBuonceAddress.address);
+        console.log('sender address ', senderNonBuonceAddress.address);
         // await sendMintMsg(senderNonBuonceAddress.address, jAmount);
         mintResult = await sendMintMsg(senderNonBuonceAddress.address, jAmount);
         console.log('jettonMinter sendMintMsg result ', mintResult);
@@ -47,7 +47,11 @@ async function jettonMinter() {
         await setMintResultHash(row.id, 'error');
         continue;
       }
-      await setMintResultHash(row, mintResult.result?.hash);
+      if (mintResult.result) {
+        await setMintResultHash(row.id, mintResult.result?.hash);
+      } else {
+        await setMintResultHash(row.id, 'error');
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
