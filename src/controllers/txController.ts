@@ -2,15 +2,15 @@ import { Request, Response } from "express";
 import pool from "../config/database";
 
 export const processTx = async (req: Request, res: Response) => {
-  const { msgHash, txHash, lastTxHash, comment } = req.body;
-  console.log("processTx tx msgHash, txHash, lastTxHash, comment ", msgHash, txHash, lastTxHash, comment);
+  const { msgHash, txHash, comment } = req.body;
+  // console.log("processTx tx msgHash, txHash, comment ", msgHash, txHash, comment);
   try {
     const result = await pool.query(
-      "INSERT INTO transactions (msg_hash, tx_hash, last_tx_hash, comment) \
-             VALUES ($1, $2, $3, $4) \
+      "INSERT INTO transactions (msg_hash, tx_hash, comment) \
+             VALUES ($1, $2, $3) \
             ON CONFLICT (msg_hash, tx_hash) DO NOTHING \
             RETURNING created_at",
-      [msgHash, txHash, lastTxHash, comment]
+      [msgHash, txHash, comment]
     );
     console.log('processTx result ', result);
     if (result.rowCount === 1) {
