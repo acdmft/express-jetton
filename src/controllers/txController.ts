@@ -12,7 +12,7 @@ export const processTx = async (req: Request, res: Response) => {
             RETURNING created_at",
       [msgHash, txHash, comment]
     );
-    console.log('processTx result ', result);
+    // console.log('processTx result ', result);
     if (result.rowCount === 1) {
       return res.json({
         message: "Comment recorded successfully",

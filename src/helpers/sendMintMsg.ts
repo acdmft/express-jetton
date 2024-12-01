@@ -62,7 +62,7 @@ async function sendMintMsg(reciever: Address, jAmount: bigint) {
     sendMode: 2, // TO DO define right mode
     messages: [
       internal({
-        value: "0.096",
+        value: "0.07",
         to: j_minter, // jetton_wallet
         body: mintMsg,
         bounce: true,
@@ -103,7 +103,7 @@ async function sendBocWithRetry(
   maxRetries: number,
   delayBetweenRetries: number
 ) {
-  // const access_token = process.env.GETBLOCK_KEY!;
+  
   const toncenterApiBaseUrl = "https://toncenter.com/api/v2";
   try {
     let result = await fetch(`${toncenterApiBaseUrl}/sendBocReturnHash`, {
