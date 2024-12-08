@@ -27,7 +27,6 @@ async function jettonMinter() {
       // await new Promise((resolve) => setTimeout(resolve, 5000));
       continue;
     }
-    console.log('some processed rows counter = 0')
     for (const row of unprocessedRows) {
       let jAmount: bigint;
       let mintResult: any;

@@ -45,7 +45,7 @@ export async function collateTransactions(transactions: Transaction[], currStart
     await new Promise((resolve) => setTimeout(resolve, 17000)); // set timeout before processing first transaction
     for (let tx of transactions) {
       // console.log(`transaction ${counter}: time ${tx.now} \n trace_id: ${tx.trace_id} \n in_msg sender: ${tx.in_msg?.source} \n in_msg value: ${tx.in_msg?.value} \n`);
-      console.log('remainingTransactions.length ', remainingTransactions.length);
+      console.log('Number of transactions to collate with db: ', remainingTransactions.length);
       if (tx.now >= currStartTime) {
         currStartTime = tx.now;
       }
@@ -56,7 +56,7 @@ export async function collateTransactions(transactions: Transaction[], currStart
             "SELECT * FROM transactions WHERE tx_hash = $1",
             [tx?.trace_id]
           );
-          console.log('query result.rowCount ', result.rowCount);
+          console.log(`Transaction with trace_id ${tx?.trace_id} found: ${result.rowCount === 1}`);
           if (result.rows.length === 0) {
             remainingTransactions.push(tx);
             continue;
@@ -76,9 +76,8 @@ export async function collateTransactions(transactions: Transaction[], currStart
       }
     }
     counter++;
-    console.log('counter ', counter);
     transactions = remainingTransactions;
-    console.log('transactions.length ', transactions.length);
+    console.log(`There are ${transactions.length} transactions left to collate with db after ${counter} attempts`);
   }
   return currStartTime+1;
 }
