@@ -12,14 +12,22 @@ function calculateJettonAmount(value: string): bigint {
 
 async function jettonMinter() {
   while (true) {
+    let initialDelay = 1000 * 30; // 30 seconds
+    let counter = 10;
+    if (counter >= 10) {
+      await new Promise((resolve) => setTimeout(resolve, initialDelay));
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 6000));
+    }
     const unprocessedRows = await getRowsForMinter();
     // console.log('unprocessedRows ', unprocessedRows);
     if (unprocessedRows.length === 0) {
       console.log("Minter message: No verified rows found, waiting...");
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      counter++;
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
       continue;
     }
-
+    console.log('some processed rows counter = 0')
     for (const row of unprocessedRows) {
       let jAmount: bigint;
       let mintResult: any;

@@ -42,7 +42,7 @@ export async function collateTransactions(transactions: Transaction[], currStart
   while (transactions.length > 0) {
     // iterate transactions
     let remainingTransactions = [];
-    await new Promise((resolve) => setTimeout(resolve, 15000)); // set timeout before processing first transaction
+    await new Promise((resolve) => setTimeout(resolve, 17000)); // set timeout before processing first transaction
     for (let tx of transactions) {
       // console.log(`transaction ${counter}: time ${tx.now} \n trace_id: ${tx.trace_id} \n in_msg sender: ${tx.in_msg?.source} \n in_msg value: ${tx.in_msg?.value} \n`);
       console.log('remainingTransactions.length ', remainingTransactions.length);
